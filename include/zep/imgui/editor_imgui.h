@@ -57,7 +57,7 @@ public:
             { ImGuiKey_UpArrow, ExtKeys::UP },
             { ImGuiKey_DownArrow, ExtKeys::DOWN },
             { ImGuiKey_PageDown, ExtKeys::PAGEDOWN },
-            { ImGuiKey_PageUp, ExtKeys::PAGEUP }
+            { ImGuiKey_PageUp, ExtKeys::PAGEUP },
         };
         static std::map<int, int> MapShiftableUSBKeys = {
             { ImGuiKey_Apostrophe, '\'' },
@@ -165,83 +165,72 @@ public:
                     return;
                 }
             }
-            // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
-            // without modifying the ImGui base code, we have special handling here for CTRL.
-            // For the Win32 case, we use VK_A (ASCII) is handled below
-#if defined(_SDL_H) || defined(ZEP_USE_SDL)
-            if (ImGui::IsKeyPressed(ImGuiKey(KEY_1)))
-            {
-                SetGlobalMode(ZepMode_Standard::StaticName());
-                handled = true;
-            }
-            else if (ImGui::IsKeyPressed(ImGuiKey(KEY_2)))
-            {
-                SetGlobalMode(ZepMode_Vim::StaticName());
-                handled = true;
-            }
-            else
-            {
-                for (int ch = KEY_1; ch <= KEY_0; ch++)
-                {
-                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
-                    {
-                        pBuffer->GetMode()->AddKeyPress(ch == KEY_0 ? '0' : ch - KEY_1 + '1', mod);
-                        handled = true;
-                    }
-                }
-                for (int ch = KEY_A; ch <= KEY_Z; ch++)
-                {
-                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
-                    {
-                        pBuffer->GetMode()->AddKeyPress((ch - KEY_A) + 'a', mod);
-                        handled = true;
-                    }
-                }
-
-                if (ImGui::IsKeyPressed(ImGuiKey(KEY_SPACE)))
-                {
-                    pBuffer->GetMode()->AddKeyPress(' ', mod);
-                    handled = true;
-                }
-            }
-#else
-            if (ImGui::IsKeyPressed(ImGuiKey('1')))
-            {
-                SetGlobalMode(ZepMode_Standard::StaticName());
-                handled = true;
-            }
-            else if (ImGui::IsKeyPressed(ImGuiKey('2')))
-            {
-                SetGlobalMode(ZepMode_Vim::StaticName());
-                handled = true;
-            }
-            else
-            {
-                for (int ch = '0'; ch <= '9'; ch++)
-                {
-                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
-                    {
-                        pBuffer->GetMode()->AddKeyPress(ch, mod);
-                        handled = true;
-                    }
-                }
-                for (int ch = 'A'; ch <= 'Z'; ch++)
-                {
-                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
-                    {
-                        pBuffer->GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
-                        handled = true;
-                    }
-                }
-
-                if (ImGui::IsKeyPressed(ImGuiKey(KEY_SPACE)))
-                {
-                    pBuffer->GetMode()->AddKeyPress(' ', mod);
-                    handled = true;
-                }
-            }
-#endif
         }
+        // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
+        // without modifying the ImGui base code, we have special handling here for CTRL.
+        // For the Win32 case, we use VK_A (ASCII) is handled below
+#if defined(_SDL_H) || defined(ZEP_USE_SDL)
+        {
+            for (int ch = ImGuiKey_0; ch <= ImGuiKey_9; ch++)
+            {
+                if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
+                {
+                    pBuffer->GetMode()->AddKeyPress(ch == ImGuiKey_0 ? '0' : ch - ImGuiKey_1 + '1', mod);
+                    handled = true;
+                }
+            }
+            for (int ch = ImGuiKey_A; ch <= ImGuiKey_Z; ch++)
+            {
+                if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                {
+                    pBuffer->GetMode()->AddKeyPress((ch - ImGuiKey_A) + 'a', mod);
+                    handled = true;
+                }
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+            {
+                pBuffer->GetMode()->AddKeyPress(0x1b, mod);
+                handled = true;
+            }
+        }
+#else
+        if (ImGui::IsKeyPressed(ImGuiKey('1')))
+        {
+            SetGlobalMode(ZepMode_Standard::StaticName());
+            handled = true;
+        }
+        else if (ImGui::IsKeyPressed(ImGuiKey('2')))
+        {
+            SetGlobalMode(ZepMode_Vim::StaticName());
+            handled = true;
+        }
+        else
+        {
+            for (int ch = '0'; ch <= '9'; ch++)
+            {
+                if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                {
+                    pBuffer->GetMode()->AddKeyPress(ch, mod);
+                    handled = true;
+                }
+            }
+            for (int ch = 'A'; ch <= 'Z'; ch++)
+            {
+                if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                {
+                    pBuffer->GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
+                    handled = true;
+                }
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey(KEY_SPACE)))
+            {
+                pBuffer->GetMode()->AddKeyPress(' ', mod);
+                handled = true;
+            }
+        }
+#endif
 
         if (!handled)
         {
