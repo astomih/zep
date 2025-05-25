@@ -28,6 +28,8 @@ public:
     {
         auto& io = ImGui::GetIO();
 
+        bool handled = false;
+
         uint32_t mod = 0;
 
         static std::map<int, int> MapUSBKeys = {
@@ -173,6 +175,7 @@ public:
                     if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
                     {
                         pBuffer->GetMode()->AddKeyPress(ch == ImGuiKey_0 ? '0' : ch - ImGuiKey_1 + '1', mod);
+                        handled = true;
                     }
                 }
                 for (int ch = ImGuiKey_A; ch <= ImGuiKey_Z; ch++)
@@ -180,12 +183,14 @@ public:
                     if (ImGui::IsKeyPressed(ImGuiKey(ch)))
                     {
                         pBuffer->GetMode()->AddKeyPress((ch - ImGuiKey_A) + 'a', mod);
+                        handled = true;
                     }
                 }
 
                 if (ImGui::IsKeyPressed(ImGuiKey_Escape))
                 {
                     pBuffer->GetMode()->AddKeyPress(0x1b, mod);
+                    handled = true;
                 }
             }
 #else
@@ -227,9 +232,6 @@ public:
 #endif
         }
 
-        // Since ImGui 1.91, the InputQueueCharacters is no longer used
-        // So, handling is disabled for now. Write your own handling if you need it.
-        /*
         if (!handled)
         {
             for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
@@ -241,7 +243,6 @@ public:
                 pBuffer->GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
             }
         }
-        */
     }
 
 private:
