@@ -28,8 +28,6 @@ public:
     {
         auto& io = ImGui::GetIO();
 
-        bool handled = false;
-
         uint32_t mod = 0;
 
         static std::map<int, int> MapUSBKeys = {
@@ -165,73 +163,73 @@ public:
                     return;
                 }
             }
-        }
-        // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
-        // without modifying the ImGui base code, we have special handling here for CTRL.
-        // For the Win32 case, we use VK_A (ASCII) is handled below
+            // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
+            // without modifying the ImGui base code, we have special handling here for CTRL.
+            // For the Win32 case, we use VK_A (ASCII) is handled below
 #if defined(_SDL_H) || defined(ZEP_USE_SDL)
-        {
-            for (int ch = ImGuiKey_0; ch <= ImGuiKey_9; ch++)
             {
-                if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
+                for (int ch = ImGuiKey_0; ch <= ImGuiKey_9; ch++)
                 {
-                    pBuffer->GetMode()->AddKeyPress(ch == ImGuiKey_0 ? '0' : ch - ImGuiKey_1 + '1', mod);
-                    handled = true;
+                    if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
+                    {
+                        pBuffer->GetMode()->AddKeyPress(ch == ImGuiKey_0 ? '0' : ch - ImGuiKey_1 + '1', mod);
+                    }
                 }
-            }
-            for (int ch = ImGuiKey_A; ch <= ImGuiKey_Z; ch++)
-            {
-                if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                for (int ch = ImGuiKey_A; ch <= ImGuiKey_Z; ch++)
                 {
-                    pBuffer->GetMode()->AddKeyPress((ch - ImGuiKey_A) + 'a', mod);
-                    handled = true;
+                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                    {
+                        pBuffer->GetMode()->AddKeyPress((ch - ImGuiKey_A) + 'a', mod);
+                    }
                 }
-            }
 
-            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-            {
-                pBuffer->GetMode()->AddKeyPress(0x1b, mod);
-                handled = true;
+                if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+                {
+                    pBuffer->GetMode()->AddKeyPress(0x1b, mod);
+                }
             }
-        }
 #else
-        if (ImGui::IsKeyPressed(ImGuiKey('1')))
-        {
-            SetGlobalMode(ZepMode_Standard::StaticName());
-            handled = true;
-        }
-        else if (ImGui::IsKeyPressed(ImGuiKey('2')))
-        {
-            SetGlobalMode(ZepMode_Vim::StaticName());
-            handled = true;
-        }
-        else
-        {
-            for (int ch = '0'; ch <= '9'; ch++)
+            if (ImGui::IsKeyPressed(ImGuiKey('1')))
             {
-                if (ImGui::IsKeyPressed(ImGuiKey(ch)))
-                {
-                    pBuffer->GetMode()->AddKeyPress(ch, mod);
-                    handled = true;
-                }
-            }
-            for (int ch = 'A'; ch <= 'Z'; ch++)
-            {
-                if (ImGui::IsKeyPressed(ImGuiKey(ch)))
-                {
-                    pBuffer->GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
-                    handled = true;
-                }
-            }
-
-            if (ImGui::IsKeyPressed(ImGuiKey(KEY_SPACE)))
-            {
-                pBuffer->GetMode()->AddKeyPress(' ', mod);
+                SetGlobalMode(ZepMode_Standard::StaticName());
                 handled = true;
             }
-        }
-#endif
+            else if (ImGui::IsKeyPressed(ImGuiKey('2')))
+            {
+                SetGlobalMode(ZepMode_Vim::StaticName());
+                handled = true;
+            }
+            else
+            {
+                for (int ch = '0'; ch <= '9'; ch++)
+                {
+                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                    {
+                        pBuffer->GetMode()->AddKeyPress(ch, mod);
+                        handled = true;
+                    }
+                }
+                for (int ch = 'A'; ch <= 'Z'; ch++)
+                {
+                    if (ImGui::IsKeyPressed(ImGuiKey(ch)))
+                    {
+                        pBuffer->GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
+                        handled = true;
+                    }
+                }
 
+                if (ImGui::IsKeyPressed(ImGuiKey(KEY_SPACE)))
+                {
+                    pBuffer->GetMode()->AddKeyPress(' ', mod);
+                    handled = true;
+                }
+            }
+#endif
+        }
+
+        // Since ImGui 1.91, the InputQueueCharacters is no longer used
+        // So, handling is disabled for now. Write your own handling if you need it.
+        /*
         if (!handled)
         {
             for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
@@ -243,6 +241,7 @@ public:
                 pBuffer->GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
             }
         }
+        */
     }
 
 private:
